@@ -1,0 +1,888 @@
+<!doctype html>
+<html lang="pl"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kraków na zielonej ścieżce</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              leaf: {
+                50: "#f4fbec",
+                100: "#e8f7d6",
+                300: "#addd77",
+                500: "#5a9f2f",
+                600: "#3f7e22",
+                700: "#2f641b",
+              },
+              sky: {
+                100: "#d8f2ff",
+                300: "#76c9ee",
+                600: "#1d76a8",
+              },
+              clay: "#d68f45",
+              ink: "#24506b",
+            },
+            boxShadow: {
+              doodle: "0 16px 35px rgba(54, 99, 43, .18)",
+              pop: "0 20px 45px rgba(18, 72, 52, .24)",
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      :root {
+        --paper: #f4f1ee;
+        --line: #9ca19a;
+        --green: #4d9229;
+        --green-dark: #2e6b1f;
+        --blue: #2a84b8;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        color: #24465b;
+        background:
+          radial-gradient(circle at 12% 18%, rgba(255, 200, 58, 0.22) 0 70px, transparent 72px),
+          radial-gradient(circle at 78% 12%, rgba(120, 201, 238, 0.2) 0 92px, transparent 94px),
+          linear-gradient(180deg, #fffaf2 0%, #edf8e7 100%);
+        font-family: "Trebuchet MS", "Comic Sans MS", system-ui, sans-serif;
+      }
+
+      .hand-title {
+        letter-spacing: 0;
+        text-shadow: 2px 3px 0 #ffffff, 5px 6px 0 rgba(38, 120, 44, 0.14);
+      }
+
+      .ribbon {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 2.6rem;
+        padding: 0.45rem 1.2rem;
+        color: white;
+        background: #558b2f;
+        border: 3px solid #356d21;
+        border-radius: 0.55rem;
+        box-shadow: 0 6px 0 rgba(38, 95, 26, 0.22);
+        transform: rotate(-1deg);
+      }
+
+      .map-wrap {
+        position: relative;
+        aspect-ratio: 16 / 10;
+        overflow: visible;
+        isolation: isolate;
+        background: #bad5e6;
+        border: 5px solid #e2e0d9;
+        border-radius: 1.25rem;
+      }
+
+      .krakow-outline {
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 100%;
+        height: auto;
+        z-index: 1;
+        transform: translateY(-50%);
+      }
+
+      .marker {
+        position: absolute;
+        z-index: 10;
+        width: clamp(116px, 14vw, 192px);
+        aspect-ratio: 1;
+        cursor: pointer;
+        border: 0;
+        background: transparent;
+        font: inherit;
+        text-align: left;
+      }
+
+      .marker::before {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: calc(100% + 16px);
+        height: calc(100% + 16px);
+        content: "";
+        border: 2px solid rgba(77, 146, 41, 0.28);
+        border-radius: 50%;
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.72);
+        transition: opacity 180ms ease, transform 180ms ease;
+      }
+
+      .marker:hover,
+      .marker:focus-visible,
+      .marker.is-open {
+        z-index: 1000;
+      }
+
+      .marker:focus-visible {
+        outline: 4px solid rgba(42, 132, 184, 0.35);
+        outline-offset: 8px;
+        border-radius: 1rem;
+      }
+
+      .marker-thumb {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: drop-shadow(0 8px 5px rgba(36, 70, 42, 0.22));
+        transform: translate(-50%, -50%) rotate(-4deg);
+        transition: filter 180ms ease, transform 180ms ease;
+        border: 4px #fff solid;
+        border-radius: 136px;
+        background: #ffffff70;
+      }
+
+      .marker:hover .marker-thumb,
+      .marker:focus-visible .marker-thumb,
+      .marker.is-open .marker-thumb {
+        filter: drop-shadow(0 12px 8px rgba(36, 70, 42, 0.28));
+        transform: translate(-50%, -50%) rotate(-2deg) scale(1.32);
+        background: #f8f8f8;
+      }
+
+      .marker:hover::before,
+      .marker:focus-visible::before,
+      .marker.is-open::before {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.36);
+        animation: pulse-ring 1.45s infinite;
+      }
+
+      .attraction-popup {
+        padding: 1rem;
+        border: 3px #fff solid;
+        border-radius: 24px;
+        background: #f8f8f8e0;
+        position: absolute;
+        left: 0;
+        top: calc(50% + 2.9rem);
+        z-index: 1001;
+        display: grid;
+        width: min(34rem, 76vw);
+        grid-template-columns: minmax(8.5rem, 12rem) minmax(13rem, 1fr);
+        gap: 0.85rem;
+        opacity: 0;
+        pointer-events: none;
+        transform: translate(-50%, 10px) scale(0.96);
+        transition: opacity 180ms ease, transform 180ms ease;
+      }
+
+      .marker:hover .attraction-popup,
+      .marker:focus-visible .attraction-popup,
+      .marker.is-open .attraction-popup {
+        opacity: 1;
+        pointer-events: auto;
+        transform: translate(-50%, 0) scale(1);
+      }
+
+      .marker.is-open .attraction-popup {
+        position: fixed;
+        left: 50vw;
+        top: 50vh;
+        width: min(1320px, calc(100vw - 1rem));
+        height: min(900px, calc(100vh - 1rem));
+        grid-template-columns: minmax(16rem, 0.9fr) minmax(18rem, 1.1fr);
+        grid-template-rows: auto auto 1fr;
+        align-content: start;
+        gap: 1rem;
+        overflow: hidden;
+        padding: clamp(1.1rem, 2.2vw, 2rem);
+        background: rgba(248, 248, 248, 0.96);
+        border-color: #ffffff;
+        border-radius: 1.25rem;
+        box-shadow: 0 24px 60px rgba(24, 64, 72, 0.32);
+        transform: translate(-50%, -50%);
+      }
+
+      .marker.edge-left.is-open .attraction-popup,
+      .marker.edge-right.is-open .attraction-popup {
+        transform: translate(-50%, -50%);
+      }
+
+      .place-card {
+        display: block;
+        grid-column: 1 / -1;
+        padding: 0.75rem 0.8rem 0.7rem 1.2rem;
+        color: #214e2c;
+        background: #f6fff0;
+        border: 4px solid #65a83c;
+        border-radius: 1rem;
+        box-shadow: 0 8px 0 rgba(81, 142, 49, 0.2);
+      }
+
+      .place-card strong {
+        display: block;
+        color: var(--green-dark);
+        font-size: clamp(0.82rem, 1.35vw, 1.1rem);
+        line-height: 0.95;
+        text-transform: uppercase;
+      }
+
+      .place-card small {
+        display: block;
+        margin-top: 0.45rem;
+        color: #315b37;
+        font-size: clamp(0.68rem, 1.05vw, 0.88rem);
+        line-height: 1.15;
+      }
+
+      .place-visual {
+        display: block;
+        width: 100%;
+        height: 100%;
+        min-height: 8.8rem;
+        overflow: hidden;
+        border: 3px solid #ffffff;
+        border-radius: 0.9rem;
+        background: #eef7e9;
+        box-shadow: 0 7px 0 rgba(44, 96, 31, 0.12);
+        object-fit: cover;
+      }
+
+      .marker.is-open .place-visual {
+        min-height: clamp(15rem, 38vh, 26rem);
+      }
+
+      .modal-close {
+        display: none;
+      }
+
+      .marker.is-open .modal-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        z-index: 5;
+        display: grid;
+        width: 3rem;
+        height: 3rem;
+        place-items: center;
+        border: 3px solid #1f2937;
+        border-radius: 999px;
+        background: #fff7ed;
+        color: #1f2937;
+        font-size: 2rem;
+        font-weight: 900;
+        line-height: 1;
+        box-shadow: 0 12px 0 rgba(31, 41, 55, 0.16);
+        transition: transform 180ms ease, background 180ms ease;
+      }
+
+      .marker.is-open .modal-close:hover,
+      .marker.is-open .modal-close:focus-visible {
+        background: #fed7aa;
+        transform: scale(1.08) rotate(6deg);
+        outline: none;
+      }
+
+      .info-card {
+        padding: 1rem;
+        color: #24465b;
+        background: #ffffff;
+        border: 4px solid #2a84b8;
+        border-radius: 1rem;
+        box-shadow: var(--pop);
+      }
+
+      .marker.is-open .info-card {
+        min-height: 100%;
+        padding: clamp(1rem, 2vw, 1.5rem);
+      }
+
+      .info-card h3 {
+        margin: 0;
+        color: #1d76a8;
+        font-size: 1.05rem;
+        font-weight: 900;
+        line-height: 1.1;
+      }
+
+      .info-card p {
+        margin: 0.5rem 0 0;
+        font-size: 0.9rem;
+        line-height: 1.35;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        margin-top: 0.75rem;
+      }
+
+      .chip {
+        padding: 0.25rem 0.5rem;
+        color: #2e6b1f;
+        background: #e9f8db;
+        border: 2px solid #b8df8d;
+        border-radius: 999px;
+        font-size: 0.76rem;
+        font-weight: 800;
+      }
+
+      .expanded-only {
+        display: none;
+      }
+
+      .marker.is-open .expanded-only {
+        display: block;
+      }
+
+      .gallery {
+        grid-column: 1 / -1;
+      }
+
+      .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 0.75rem;
+        margin-top: 0.7rem;
+      }
+
+      .gallery-grid img {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        object-fit: cover;
+        border: 3px solid #ffffff;
+        border-radius: 0.85rem;
+        box-shadow: 0 8px 16px rgba(36, 70, 42, 0.14);
+      }
+
+      .marker.is-open .gallery-grid img {
+        aspect-ratio: 16 / 7;
+      }
+
+      .long-description {
+        margin-top: 0.85rem;
+        font-size: 0.95rem;
+        line-height: 1.45;
+      }
+
+      .attraction-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 1rem;
+        padding: 0.65rem 0.95rem;
+        color: #ffffff;
+        background: #2a84b8;
+        border-radius: 999px;
+        font-size: 0.88rem;
+        font-weight: 900;
+        text-decoration: none;
+        box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.15);
+      }
+
+      .marker.edge-left .attraction-popup {
+        left: 0;
+        transform: translate(0, 10px) scale(0.96);
+      }
+
+      .marker.edge-left:hover .attraction-popup,
+      .marker.edge-left:focus-visible .attraction-popup,
+      .marker.edge-left.is-open .attraction-popup {
+        transform: translate(0, 0) scale(1);
+      }
+
+      .marker.edge-right .attraction-popup {
+        left: auto;
+        right: 0;
+        transform: translate(0, 10px) scale(0.96);
+      }
+
+      .marker.edge-right:hover .attraction-popup,
+      .marker.edge-right:focus-visible .attraction-popup,
+      .marker.edge-right.is-open .attraction-popup {
+        transform: translate(0, 0) scale(1);
+      }
+
+      .tip-box {
+        background: rgba(255, 255, 255, 0.86);
+        border: 4px solid #2a84b8;
+        border-radius: 1.15rem;
+        box-shadow: 0 10px 0 rgba(42, 132, 184, 0.1);
+      }
+
+      .tip-row {
+        display: grid;
+        grid-template-columns: 2.2rem 1fr;
+        gap: 0.55rem;
+        align-items: center;
+      }
+
+      .tip-icon {
+        display: grid;
+        width: 2.1rem;
+        aspect-ratio: 1;
+        place-items: center;
+        color: #fff;
+        background: #4d9229;
+        border-radius: 999px;
+        box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.12);
+      }
+
+      @keyframes pulse-ring {
+        0%,
+        100% {
+          opacity: 0.95;
+          transform: translate(-50%, -50%) scale(1.5);
+        }
+
+        50% {
+          opacity: 0.18;
+          transform: translate(-50%, -50%) scale(1.34);
+        }
+      }
+
+      @media (max-width: 900px) {
+        .map-wrap {
+          aspect-ratio: 3 / 4;
+          min-height: 760px;
+        }
+
+        .krakow-outline {
+          left: -18%;
+          width: 136%;
+          height: auto;
+        }
+
+        .attraction-popup {
+          width: min(21rem, 82vw);
+          grid-template-columns: 1fr;
+        }
+
+        .marker.is-open .attraction-popup {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto auto auto auto;
+          overflow: auto;
+        }
+
+        .place-visual {
+          min-height: 9.5rem;
+        }
+
+        .marker.is-open .place-visual {
+          min-height: 13rem;
+        }
+
+        .gallery-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .info-card {
+          width: 100%;
+        }
+      }
+
+      @media (max-width: 540px) {
+        .map-wrap {
+          min-height: 900px;
+          border-width: 3px;
+          border-radius: 0.9rem;
+        }
+
+        .place-card {
+          padding: 0.65rem 0.55rem 0.6rem 1rem;
+          border-width: 3px;
+        }
+
+        .info-card {
+          border-width: 3px;
+          font-size: 0.92rem;
+        }
+      }
+    </style>
+  <style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:0.25rem}.mt-1{margin-top:0.25rem}.mt-2{margin-top:0.5rem}.mt-4{margin-top:1rem}.flex{display:flex}.grid{display:grid}.w-full{width:100%}.max-w-4xl{max-width:56rem}.max-w-\[1480px\]{max-width:1480px}.flex-col{flex-direction:column}.items-end{align-items:flex-end}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.gap-5{gap:1.25rem}.gap-6{gap:1.5rem}.rounded-\[1rem\]{border-radius:1rem}.rounded-xl{border-radius:0.75rem}.border-2{border-width:2px}.border-4{border-width:4px}.border-amber-300{--tw-border-opacity:1;border-color:rgb(252 211 77 / var(--tw-border-opacity, 1))}.border-leaf-300{--tw-border-opacity:1;border-color:rgb(173 221 119 / var(--tw-border-opacity, 1))}.border-leaf-500{--tw-border-opacity:1;border-color:rgb(90 159 47 / var(--tw-border-opacity, 1))}.border-sky-300{--tw-border-opacity:1;border-color:rgb(118 201 238 / var(--tw-border-opacity, 1))}.border-sky-600{--tw-border-opacity:1;border-color:rgb(29 118 168 / var(--tw-border-opacity, 1))}.bg-amber-50{--tw-bg-opacity:1;background-color:rgb(255 251 235 / var(--tw-bg-opacity, 1))}.bg-leaf-50{--tw-bg-opacity:1;background-color:rgb(244 251 236 / var(--tw-bg-opacity, 1))}.bg-sky-100\/70{background-color:rgb(216 242 255 / 0.7)}.bg-white\/85{background-color:rgb(255 255 255 / 0.85)}.p-4{padding:1rem}.p-5{padding:1.25rem}.px-4{padding-left:1rem;padding-right:1rem}.py-5{padding-top:1.25rem;padding-bottom:1.25rem}.text-2xl{font-size:1.5rem;line-height:2rem}.text-5xl{font-size:3rem;line-height:1}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.font-black{font-weight:900}.font-bold{font-weight:700}.uppercase{text-transform:uppercase}.leading-\[0\.95\]{line-height:0.95}.leading-snug{line-height:1.375}.leading-tight{line-height:1.25}.text-amber-700{--tw-text-opacity:1;color:rgb(180 83 9 / var(--tw-text-opacity, 1))}.text-ink{--tw-text-opacity:1;color:rgb(36 80 107 / var(--tw-text-opacity, 1))}.text-leaf-600{--tw-text-opacity:1;color:rgb(63 126 34 / var(--tw-text-opacity, 1))}.text-leaf-700{--tw-text-opacity:1;color:rgb(47 100 27 / var(--tw-text-opacity, 1))}.text-sky-600{--tw-text-opacity:1;color:rgb(29 118 168 / var(--tw-text-opacity, 1))}.shadow-doodle{--tw-shadow:0 16px 35px rgba(54, 99, 43, .18);--tw-shadow-colored:0 16px 35px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}@media (min-width: 640px){.sm\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.sm\:px-6{padding-left:1.5rem;padding-right:1.5rem}.sm\:text-6xl{font-size:3.75rem;line-height:1}.sm\:text-xl{font-size:1.25rem;line-height:1.75rem}}@media (min-width: 1024px){.lg\:w-80{width:20rem}.lg\:grid-cols-\[1fr_420px\]{grid-template-columns:1fr 420px}.lg\:grid-cols-\[1fr_auto\]{grid-template-columns:1fr auto}.lg\:px-8{padding-left:2rem;padding-right:2rem}.lg\:text-7xl{font-size:4.5rem;line-height:1}}</style></head>
+
+  <body>
+    <main class="mx-auto flex w-full max-w-[1480px] flex-col gap-6 px-4 py-5 sm:px-6 lg:px-8">
+      <header class="grid items-end gap-4 lg:grid-cols-[1fr_auto]">
+        <div>
+          <p class="mb-1 text-lg font-black uppercase text-leaf-600">Informacyjna mapa Krakowa</p>
+          <h1 class="hand-title max-w-4xl text-5xl font-black uppercase leading-[0.95] text-sky-600 sm:text-6xl lg:text-7xl">
+            Kraków na zielonej ścieżce
+          </h1>
+          <div class="mt-4">
+            <span class="ribbon text-base font-black uppercase sm:text-xl">Edukacyjne atrakcje dla dzieci z klas 1-3</span>
+          </div>
+        </div>
+        <aside class="rounded-[1rem] border-4 border-sky-600 bg-white/85 p-4 shadow-doodle lg:w-80">
+          <p class="text-2xl font-black leading-tight text-sky-600">Odkrywaj, ucz się, dbaj o przyrodę!</p>
+          <p class="mt-2 text-sm font-bold leading-snug text-ink">
+            Trasa łączy obserwacje zwierząt, ogrody eksperymentalne, las, wodę i codzienne eko-nawyki.
+          </p>
+        </aside>
+      </header>
+
+      <section class="map-wrap shadow-doodle" aria-label="Interaktywna mapa Krakowa z atrakcjami środowiskowymi">
+        <img class="krakow-outline" src="mapa.svg" alt="Konturowa mapa Krakowa">
+
+        <div class="marker" style="left: 18%;top: 37%;" role="button" tabindex="0" aria-expanded="false">
+          <img class="marker-thumb" src="zoo.png" alt="Zoo Kraków">
+          <div class="attraction-popup" role="tooltip">
+            <button class="modal-close" type="button" aria-label="Zamknij okno">&times;</button>
+            <img class="place-visual" src="zoo.png" alt="" aria-hidden="true">
+            <div class="info-card">
+              <h3>Zoo Kraków i Las Wolski</h3>
+              <p>
+                Lekcja o bioróżnorodności, ochronie gatunków i odpowiedzialnym zwiedzaniu. Dzieci porównują potrzeby zwierząt z różnych środowisk.
+              </p>
+              <p class="long-description expanded-only">
+                W rozszerzonej wersji wycieczki uczniowie mogą pracować z kartą obserwacji: rozpoznawać grupy zwierząt, notować przystosowania do życia w różnych ekosystemach i zastanawiać się, dlaczego ochrona siedlisk jest równie ważna jak opieka nad samymi gatunkami.
+              </p>
+              <span class="chips">
+                <span class="chip">2-3 godz.</span>
+                <span class="chip">klasy 1-4</span>
+                <span class="chip">spacer terenowy</span>
+              </span>
+              <a class="attraction-link expanded-only" href="https://zoo-krakow.pl/" target="_blank" rel="noreferrer">Strona atrakcji</a>
+            </div>
+            <div class="place-card">
+              <strong>Zoo Kraków</strong>
+              <small>Poznaj zwierzęta i ich siedliska.</small>
+            </div>
+            <div class="gallery expanded-only">
+              <strong>Galeria</strong>
+              <div class="gallery-grid">
+                <img src="zoo.png" alt="">
+                <img src="placeholder.png" alt="">
+                <img src="witkowice.png" alt="">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="marker" style="left: 50%;top: 40%;" role="button" tabindex="0" aria-expanded="false">
+          <img class="marker-thumb" src="lem.png" alt="Ogród Doświadczeń im. S. Lema">
+          <div class="attraction-popup" role="tooltip">
+            <button class="modal-close" type="button" aria-label="Zamknij okno">&times;</button>
+            <img class="place-visual" src="lem.png" alt="" aria-hidden="true">
+            <div class="info-card">
+              <h3>Ogród Doświadczeń im. Stanisława Lema</h3>
+              <p>
+                Stacje badawcze pokazują energię, światło, wodę i zjawiska pogodowe. Świetny punkt na rozmowę o tym, jak działa natura.
+              </p>
+              <p class="long-description expanded-only">
+                Dłuższy wariant zajęć może obejmować pracę w grupach przy wybranych stanowiskach: uczniowie formułują hipotezę, sprawdzają doświadczenie i zapisują, jak obserwowane zjawisko łączy się z pogodą, energią lub wodą w przyrodzie.
+              </p>
+              <span class="chips">
+                <span class="chip">1,5-2 godz.</span>
+                <span class="chip">klasy 3-6</span>
+                <span class="chip">eksperymenty</span>
+              </span>
+              <a class="attraction-link expanded-only" href="https://www.ogroddoswiadczen.pl/" target="_blank" rel="noreferrer">Strona atrakcji</a>
+            </div>
+            <div class="place-card">
+              <strong>Ogród Doświadczeń im. S. Lema</strong>
+              <small>Eksperymentuj w ogrodzie pełnym przyrody.</small>
+            </div>
+            <div class="gallery expanded-only">
+              <strong>Galeria</strong>
+              <div class="gallery-grid">
+                <img src="lem.png" alt="">
+                <img src="placeholder.png" alt="">
+                <img src="bagry.png" alt="">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="marker" style="left: 22%;top: 55%;" role="button" tabindex="0" aria-expanded="false">
+          <img class="marker-thumb" src="symbioza.png" alt="Centrum Edukacji Ekologicznej Symbioza">
+          <div class="attraction-popup" role="tooltip">
+            <button class="modal-close" type="button" aria-label="Zamknij okno">&times;</button>
+            <img class="place-visual" src="symbioza.png" alt="" aria-hidden="true">
+            <div class="info-card">
+              <h3>Centrum Edukacji Ekologicznej Symbioza</h3>
+              <p>
+                Warsztaty o lesie, odpadach, wodzie i wyborach, które zmniejszają ślad środowiskowy. Dzieci pracują w małych zespołach.
+              </p>
+              <p class="long-description expanded-only">
+                Wersja rozszerzona może stać się mini-projektem klasowym: dzieci analizują codzienne decyzje, tworzą listę działań dla szkoły i porównują, które zmiany najłatwiej wprowadzić od razu.
+              </p>
+              <span class="chips">
+                <span class="chip">1-2 godz.</span>
+                <span class="chip">klasy 1-8</span>
+                <span class="chip">warsztaty</span>
+              </span>
+              <a class="attraction-link expanded-only" href="https://symbioza-krakow.pl/" target="_blank" rel="noreferrer">Strona atrakcji</a>
+            </div>
+            <div class="place-card">
+              <strong>Centrum Edukacji Ekologicznej Symbioza</strong>
+              <small>Zrównoważony rozwój na co dzień.</small>
+            </div>
+            <div class="gallery expanded-only">
+              <strong>Galeria</strong>
+              <div class="gallery-grid">
+                <img src="symbioza.png" alt="">
+                <img src="zoo.png" alt="">
+                <img src="placeholder.png" alt="">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="marker" style="left: 39%;top: 20%;" role="button" tabindex="0" aria-expanded="false">
+          <img class="marker-thumb" src="witkowice.png" alt="Las Witkowicki">
+          <div class="attraction-popup" role="tooltip">
+            <button class="modal-close" type="button" aria-label="Zamknij okno">&times;</button>
+            <img class="place-visual" src="witkowice.png" alt="" aria-hidden="true">
+            <div class="info-card">
+              <h3>Las Witkowicki</h3>
+              <p>
+                Krótka wyprawa z kartami obserwacji: liście, tropy, warstwy lasu i zasady cichego zachowania na ścieżce.
+              </p>
+              <p class="long-description expanded-only">
+                Podczas dłuższego spaceru klasa może porównać warstwy lasu, odnaleźć ślady obecności zwierząt i przygotować prosty zielnik obserwacyjny bez zrywania roślin.
+              </p>
+              <span class="chips">
+                <span class="chip">1,5 godz.</span>
+                <span class="chip">klasy 1-5</span>
+                <span class="chip">obserwacje</span>
+              </span>
+              <a class="attraction-link expanded-only" href="https://www.google.com/search?q=Las+Witkowicki+Krak%C3%B3w" target="_blank" rel="noreferrer">Strona atrakcji</a>
+            </div>
+            <div class="place-card">
+              <strong>Las Witkowicki</strong>
+              <small>Leśna przygoda i nauka w terenie.</small>
+            </div>
+            <div class="gallery expanded-only">
+              <strong>Galeria</strong>
+              <div class="gallery-grid">
+                <img src="witkowice.png" alt="">
+                <img src="placeholder.png" alt="">
+                <img src="laki.png" alt="">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="marker" style="left: 45%;top: 61%;" role="button" tabindex="0" aria-expanded="false">
+          <img class="marker-thumb" src="bagry.png" alt="Zbiornik Bagry">
+          <div class="attraction-popup" role="tooltip">
+            <button class="modal-close" type="button" aria-label="Zamknij okno">&times;</button>
+            <img class="place-visual" src="bagry.png" alt="" aria-hidden="true">
+            <div class="info-card">
+              <h3>Zbiornik Bagry</h3>
+              <p>
+                Przystanek o mokradłach, ptakach wodnych i znaczeniu czystej wody w mieście. Dobrze działa z lornetkami i mini-notatnikiem.
+              </p>
+              <p class="long-description expanded-only">
+                Rozszerzony opis wycieczki obejmuje obserwację ptaków, rozmowę o czystości wody oraz krótkie zadanie: narysować łańcuch zależności między roślinami, owadami, ptakami i człowiekiem.
+              </p>
+              <span class="chips">
+                <span class="chip">1 godz.</span>
+                <span class="chip">klasy 2-6</span>
+                <span class="chip">woda i ptaki</span>
+              </span>
+              <a class="attraction-link expanded-only" href="https://www.google.com/search?q=Zbiornik+Bagry+Krak%C3%B3w" target="_blank" rel="noreferrer">Strona atrakcji</a>
+            </div>
+            <div class="place-card">
+              <strong>Zbiornik Bagry</strong>
+              <small>Obserwuj ptaki i poznaj świat wodny.</small>
+            </div>
+            <div class="gallery expanded-only">
+              <strong>Galeria</strong>
+              <div class="gallery-grid">
+                <img src="bagry.png" alt="">
+                <img src="placeholder.png" alt="">
+                <img src="symbioza.png" alt="">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="marker" style="left: 85%;top: 44%;" role="button" tabindex="0" aria-expanded="false">
+          
+          <img class="marker-thumb" src="jeziorkowo.png" alt="Ośrodek Edukacji Ekologicznej w Swoszowicach">
+          <div class="attraction-popup" role="tooltip">
+            <button class="modal-close" type="button" aria-label="Zamknij okno">&times;</button>
+            <img class="place-visual" src="jeziorkowo.png" alt="" aria-hidden="true">
+            <div class="info-card">
+              <h3>Ośrodek Edukacji Ekologicznej w Swoszowicach</h3>
+              <p>
+                Zajęcia o jakości powietrza, zieleni miejskiej i prostych sposobach dbania o zdrowe otoczenie szkoły oraz domu.
+              </p>
+              <p class="long-description expanded-only">
+                Dłuższy wariant można połączyć z pomiarem jakości powietrza, rozmową o transporcie oraz projektowaniem szkolnej listy działań ograniczających smog i hałas.
+              </p>
+              <span class="chips">
+                <span class="chip">1,5-2 godz.</span>
+                <span class="chip">klasy 4-8</span>
+                <span class="chip">czyste powietrze</span>
+              </span>
+              <a class="attraction-link expanded-only" href="https://www.google.com/search?q=O%C5%9Brodek+Edukacji+Ekologicznej+Swoszowice" target="_blank" rel="noreferrer">Strona atrakcji</a>
+            </div>
+            <div class="place-card">
+              <strong>Ośrodek Edukacji Ekologicznej w Swoszowicach</strong>
+              <small>Przyroda, warsztaty i czyste powietrze.</small>
+            </div>
+            <div class="gallery expanded-only">
+              <strong>Galeria</strong>
+              <div class="gallery-grid">
+                <img src="jeziorkowo.png" alt="">
+                <img src="placeholder.png" alt="">
+                <img src="witkowice.png" alt="">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="marker" style="left: 70%;top: 40%;" role="button" tabindex="0" aria-expanded="false">
+          
+          <img class="marker-thumb" src="laki.png" alt="Łąki nowochuckie">
+          <div class="attraction-popup" role="tooltip">
+            <button class="modal-close" type="button" aria-label="Zamknij okno">&times;</button>
+            <img class="place-visual" src="laki.png" alt="" aria-hidden="true">
+            <div class="info-card">
+              <h3>Łąki Nowohuckie</h3>
+              <p>
+                Spacer po miejskiej ostoi przyrody, podczas którego dzieci poznają rośliny łąkowe, owady zapylające i znaczenie zielonych enklaw.
+              </p>
+              <p class="long-description expanded-only">
+                W rozszerzonej wersji uczniowie tworzą mapę mikro-siedlisk: zaznaczają trawy, krzewy, miejsca dla owadów i ptaków, a potem rozmawiają o tym, dlaczego nie każda zieleń miejska powinna być równo przystrzyżonym trawnikiem.
+              </p>
+              <span class="chips">
+                <span class="chip">1-1,5 godz.</span>
+                <span class="chip">klasy 1-3</span>
+                <span class="chip">łąka i owady</span>
+              </span>
+              <a class="attraction-link expanded-only" href="https://www.google.com/search?q=%C5%81%C4%85ki+Nowohuckie+Krak%C3%B3w" target="_blank" rel="noreferrer">Strona atrakcji</a>
+            </div>
+            <div class="place-card">
+              <strong>Łąki Nowohuckie</strong>
+              <small>Poznaj łąkę, zapylacze i miejską przyrodę.</small>
+            </div>
+            <div class="gallery expanded-only">
+              <strong>Galeria</strong>
+              <div class="gallery-grid">
+                <img src="laki.png" alt="">
+                <img src="bagry.png" alt="">
+                <img src="placeholder.png" alt="">
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid gap-5 lg:grid-cols-[1fr_420px]">
+        <article class="rounded-[1rem] border-4 border-leaf-500 bg-white/85 p-5 shadow-doodle">
+          <h2 class="text-2xl font-black uppercase leading-tight text-leaf-700">Propozycja wycieczki dla klasy</h2>
+          <div class="mt-4 grid gap-3 sm:grid-cols-3">
+            <div class="rounded-xl border-2 border-leaf-300 bg-leaf-50 p-4">
+              <p class="text-sm font-black uppercase text-leaf-700">Rano</p>
+              <p class="mt-1 text-sm font-bold leading-snug">Ogród Doświadczeń albo Symbioza: warsztaty z prowadzącym.</p>
+            </div>
+            <div class="rounded-xl border-2 border-sky-300 bg-sky-100/70 p-4">
+              <p class="text-sm font-black uppercase text-sky-600">Południe</p>
+              <p class="mt-1 text-sm font-bold leading-snug">Spacer terenowy: Las Witkowicki, Las Wolski lub Bagry.</p>
+            </div>
+            <div class="rounded-xl border-2 border-amber-300 bg-amber-50 p-4">
+              <p class="text-sm font-black uppercase text-amber-700">Podsumowanie</p>
+              <p class="mt-1 text-sm font-bold leading-snug">Mapa obserwacji, zdjęcia znalezisk i klasowe eko-zobowiązanie.</p>
+            </div>
+          </div>
+        </article>
+
+        <aside class="tip-box p-5">
+          <h2 class="text-2xl font-black uppercase leading-tight text-sky-600">Mały eko-odkrywca pamięta!</h2>
+          <div class="mt-4 grid gap-3 text-sm font-bold leading-snug text-ink">
+            <p class="tip-row"><span class="tip-icon">♻</span><span>Nie zostawiaj śmieci w naturze.</span></p>
+            <p class="tip-row"><span class="tip-icon">💧</span><span>Oszczędzaj wodę i energię.</span></p>
+            <p class="tip-row"><span class="tip-icon">🌿</span><span>Szanuj rośliny oraz zwierzęta.</span></p>
+            <p class="tip-row"><span class="tip-icon">🚲</span><span>Korzystaj z komunikacji miejskiej lub roweru.</span></p>
+          </div>
+        </aside>
+      </section>
+
+      <footer class="grid items-end gap-4 lg:grid-cols-[1fr_auto]">
+        <div>
+          <p class="mb-1 text-lg font-black uppercase text-leaf-600">Karolina Płatek</p>
+      </footer>
+    </main>
+
+    <script>
+      const markers = [...document.querySelectorAll(".marker")];
+
+      function clearExpandedPosition(marker) {
+        marker.querySelector(".attraction-popup")?.removeAttribute("style");
+      }
+
+      function closeMarkers(except) {
+        markers.forEach((marker) => {
+          if (marker !== except) {
+            marker.classList.remove("is-open");
+            marker.setAttribute("aria-expanded", "false");
+            clearExpandedPosition(marker);
+          }
+        });
+      }
+
+      markers.forEach((marker) => {
+        function toggleMarker(marker) {
+          const willOpen = !marker.classList.contains("is-open");
+          closeMarkers(marker);
+          marker.classList.toggle("is-open", willOpen);
+          marker.setAttribute("aria-expanded", String(willOpen));
+          if (!willOpen) {
+            clearExpandedPosition(marker);
+          }
+        }
+
+        marker.addEventListener("click", (event) => {
+          if (event.target.closest("a")) return;
+          event.stopPropagation();
+          toggleMarker(marker);
+        });
+
+        const popup = marker.querySelector(".attraction-popup");
+        popup?.addEventListener("click", (event) => {
+          event.stopPropagation();
+        });
+
+        const closeButton = marker.querySelector(".modal-close");
+        closeButton?.addEventListener("click", (event) => {
+          event.stopPropagation();
+          marker.classList.remove("is-open");
+          marker.setAttribute("aria-expanded", "false");
+          clearExpandedPosition(marker);
+        });
+
+        marker.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            event.stopPropagation();
+            toggleMarker(marker);
+          }
+
+          if (event.key === "Escape") {
+            marker.classList.remove("is-open");
+            marker.setAttribute("aria-expanded", "false");
+            clearExpandedPosition(marker);
+          }
+        });
+      });
+
+      document.addEventListener("click", () => closeMarkers());
+    </script>
+  
+
+</body></html>
