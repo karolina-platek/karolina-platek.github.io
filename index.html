@@ -79,34 +79,72 @@
 
       .map-wrap {
         position: relative;
-        aspect-ratio: 16 / 10;
         overflow: visible;
         isolation: isolate;
+        padding: clamp(0.35rem, 1.2vw, 1rem);
         background: #bad5e6;
         border: 5px solid #e2e0d9;
         border-radius: 1.25rem;
       }
 
+      .map-stage {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 5 / 4;
+      }
+
       .krakow-outline {
         position: absolute;
-        left: 0;
-        top: 50%;
+        inset: 0;
         width: 100%;
-        height: auto;
+        height: 100%;
         z-index: 1;
-        transform: translateY(-50%);
+        object-fit: contain;
       }
 
       .marker {
+        --marker-size: clamp(56px, 10.5%, 158px);
         position: absolute;
         z-index: 10;
-        width: clamp(116px, 14vw, 192px);
+        left: calc(var(--x) - (var(--marker-size) / 2));
+        top: calc(var(--y) - (var(--marker-size) / 2));
+        width: var(--marker-size);
         aspect-ratio: 1;
         cursor: pointer;
         border: 0;
         background: transparent;
         font: inherit;
         text-align: left;
+      }
+
+      .marker-zoo {
+        --x: 18%;
+        --y: 33.75%;
+      }
+
+      .marker-lem {
+        --x: 50%;
+        --y: 37.5%;
+      }
+
+      .marker-symbioza {
+        --x: 22%;
+        --y: 56.25%;
+      }
+
+      .marker-witkowice {
+        --x: 39%;
+        --y: 12.5%;
+      }
+
+      .marker-jeziorkowo {
+        --x: 85%;
+        --y: 42.5%;
+      }
+
+      .marker-laki {
+        --x: 70%;
+        --y: 37.5%;
       }
 
       .marker::before {
@@ -195,14 +233,16 @@
       }
 
       .marker.is-open .attraction-popup {
+        --visual-height: clamp(11rem, 28vh, 18rem);
+        --gallery-height: clamp(10rem, 30vh, 18rem);
         position: fixed;
         left: 50vw;
         top: 50vh;
         width: min(1320px, calc(100vw - 1rem));
         height: min(900px, calc(100vh - 1rem));
-        grid-template-columns: minmax(16rem, 0.9fr) minmax(18rem, 1.1fr);
-        grid-template-rows: auto auto 1fr;
-        align-content: start;
+        grid-template-columns: minmax(13rem, 0.74fr) minmax(24rem, 1.26fr);
+        grid-template-rows: minmax(calc(var(--visual-height) + var(--gallery-height) + 8.5rem), 1fr) auto;
+        align-content: stretch;
         gap: 1rem;
         overflow: hidden;
         padding: clamp(1.1rem, 2.2vw, 2rem);
@@ -259,7 +299,12 @@
       }
 
       .marker.is-open .place-visual {
-        min-height: clamp(15rem, 38vh, 26rem);
+        grid-column: 1;
+        grid-row: 1;
+        align-self: start;
+        height: var(--visual-height);
+        min-height: 0;
+        object-fit: contain;
       }
 
       .modal-close {
@@ -303,8 +348,17 @@
       }
 
       .marker.is-open .info-card {
-        min-height: 100%;
+        grid-column: 2;
+        grid-row: 1;
+        min-height: 0;
+        max-height: 100%;
+        overflow: auto;
         padding: clamp(1rem, 2vw, 1.5rem);
+        padding-bottom: clamp(1.25rem, 2.4vw, 1.8rem);
+      }
+
+      .marker.is-open .info-card h3 {
+        padding-right: 2.5rem;
       }
 
       .info-card h3 {
@@ -350,6 +404,26 @@
         grid-column: 1 / -1;
       }
 
+      .marker.is-open .place-card {
+        grid-column: 1 / -1;
+        grid-row: 2;
+      }
+
+      .marker.is-open .gallery {
+        grid-column: 1;
+        grid-row: 1;
+        align-self: start;
+        display: grid;
+        height: var(--gallery-height);
+        min-height: 10rem;
+        margin-top: calc(var(--visual-height) + 1rem);
+        padding-top: 0;
+      }
+
+      .marker.is-open .gallery > strong {
+        display: none;
+      }
+
       .gallery-grid {
         display: grid;
         grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -364,16 +438,299 @@
         border: 3px solid #ffffff;
         border-radius: 0.85rem;
         box-shadow: 0 8px 16px rgba(36, 70, 42, 0.14);
+        cursor: zoom-in;
       }
 
       .marker.is-open .gallery-grid img {
-        aspect-ratio: 16 / 7;
+        aspect-ratio: 16 / 6;
+      }
+
+      .marker.is-open .gallery-grid {
+        position: relative;
+        display: block;
+        height: 100%;
+        min-height: 100%;
+        margin-top: 0;
+        overflow: hidden;
+        border: 3px solid #ffffff;
+        border-radius: 1rem;
+        background: #e9f6fb;
+        box-shadow: 0 10px 22px rgba(36, 70, 42, 0.2);
+        cursor: zoom-in;
+      }
+
+      .marker.is-open .gallery-grid::before {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        content: "";
+        background:
+          linear-gradient(180deg, rgba(20, 62, 76, 0.02) 20%, rgba(20, 62, 76, 0.78) 100%);
+        pointer-events: none;
+      }
+
+      .marker.is-open .gallery-grid::after {
+        position: absolute;
+        left: 0.85rem;
+        right: 0.85rem;
+        bottom: 0.85rem;
+        z-index: 2;
+        content: "Galeria zdjęć - kliknij, aby otworzyć";
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 2.4rem;
+        padding: 0.55rem 0.8rem;
+        color: #ffffff;
+        background: #2a84b8;
+        border: 3px solid rgba(255, 255, 255, 0.9);
+        border-radius: 999px;
+        font-size: 0.88rem;
+        font-weight: 900;
+        line-height: 1.1;
+        text-align: center;
+        box-shadow: 0 8px 18px rgba(12, 40, 48, 0.28), inset 0 -4px 0 rgba(0, 0, 0, 0.16);
+        pointer-events: none;
+      }
+
+      .marker.is-open .gallery-grid img {
+        display: none;
+      }
+
+      .marker.is-open .gallery-grid img:first-child {
+        display: block;
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        aspect-ratio: auto;
+        object-fit: cover;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .marker.is-open .place-visual {
+        cursor: zoom-in;
+      }
+
+      .carousel-viewer {
+        position: fixed;
+        inset: 0;
+        z-index: 3000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(1rem, 3vw, 2.5rem);
+        background: rgba(24, 64, 72, 0.72);
+        backdrop-filter: blur(6px);
+      }
+
+      .carousel-viewer.is-visible {
+        display: flex;
+      }
+
+      .carousel-panel {
+        position: relative;
+        display: grid;
+        width: min(1180px, 96vw);
+        max-height: 92vh;
+        gap: 0.85rem;
+        padding: clamp(0.85rem, 2vw, 1.25rem);
+        border: 4px solid #ffffff;
+        border-radius: 1.25rem;
+        background: #f8f8f8;
+        box-shadow: 0 28px 70px rgba(12, 40, 48, 0.38);
+      }
+
+      .carousel-image-wrap {
+        display: grid;
+        min-height: min(68vh, 680px);
+        place-items: center;
+        overflow: hidden;
+        border: 4px solid #bad5e6;
+        border-radius: 1rem;
+        background: #e9f6fb;
+      }
+
+      .carousel-image {
+        width: 100%;
+        max-height: min(68vh, 680px);
+        object-fit: contain;
+      }
+
+      .carousel-caption {
+        color: #24465b;
+        font-size: clamp(0.9rem, 1.6vw, 1.1rem);
+        font-weight: 900;
+        text-align: center;
+      }
+
+      .carousel-close,
+      .carousel-arrow {
+        position: absolute;
+        z-index: 2;
+        display: grid;
+        place-items: center;
+        border: 3px solid #1f2937;
+        background: #fff7ed;
+        color: #1f2937;
+        font-weight: 900;
+        box-shadow: 0 10px 0 rgba(31, 41, 55, 0.16);
+        transition: transform 180ms ease, background 180ms ease;
+      }
+
+      .carousel-close {
+        top: 0.85rem;
+        right: 0.85rem;
+        width: 3rem;
+        height: 3rem;
+        border-radius: 999px;
+        font-size: 2rem;
+        line-height: 1;
+      }
+
+      .carousel-arrow {
+        top: 50%;
+        width: 3.3rem;
+        height: 3.3rem;
+        border-radius: 999px;
+        font-size: 2.2rem;
+        transform: translateY(-50%);
+      }
+
+      .carousel-prev {
+        left: 1rem;
+      }
+
+      .carousel-next {
+        right: 1rem;
+      }
+
+      .carousel-close:hover,
+      .carousel-close:focus-visible,
+      .carousel-arrow:hover,
+      .carousel-arrow:focus-visible {
+        background: #fed7aa;
+        outline: none;
+      }
+
+      .carousel-close:hover,
+      .carousel-close:focus-visible {
+        transform: scale(1.08) rotate(6deg);
+      }
+
+      .carousel-arrow:hover,
+      .carousel-arrow:focus-visible {
+        transform: translateY(-50%) scale(1.08);
       }
 
       .long-description {
         margin-top: 0.85rem;
         font-size: 0.95rem;
         line-height: 1.45;
+      }
+
+      .detail-sections {
+        margin-top: 0.85rem;
+      }
+
+      .detail-section {
+        margin-top: 0.75rem;
+      }
+
+      .detail-section h4 {
+        margin: 0;
+        color: #2e6b1f;
+        font-size: 0.9rem;
+        font-weight: 900;
+        line-height: 1.2;
+      }
+
+      .detail-section p,
+      .detail-section ul,
+      .detail-section ol {
+        margin: 0.3rem 0 0;
+        font-size: 0.9rem;
+        line-height: 1.4;
+      }
+
+      .detail-section ul,
+      .detail-section ol {
+        padding-left: 1.1rem;
+      }
+
+      .detail-section ul {
+        list-style: disc;
+      }
+
+      .detail-section ol {
+        list-style: decimal;
+      }
+
+      .detail-section li + li {
+        margin-top: 0.2rem;
+      }
+
+      .source-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-top: 0.75rem;
+      }
+
+      .source-links a {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.35rem 0.55rem;
+        color: #1d76a8;
+        background: #d8f2ff;
+        border: 2px solid #76c9ee;
+        border-radius: 999px;
+        font-size: 0.78rem;
+        font-weight: 900;
+        text-decoration: none;
+        transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+      }
+
+      .source-links a:hover,
+      .source-links a:focus-visible {
+        background: #bdeaff;
+        border-color: #2ba8dc;
+        box-shadow: 0 0.35rem 0.8rem rgba(29, 118, 168, 0.18);
+        transform: translateY(-2px);
+      }
+
+      .resource-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.55rem;
+        margin-top: 0.65rem;
+      }
+
+      .resource-buttons a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 2.3rem;
+        padding: 0.55rem 0.85rem;
+        color: #ffffff;
+        background: #4d9229;
+        border: 3px solid #2e6b1f;
+        border-radius: 999px;
+        font-size: 0.86rem;
+        font-weight: 900;
+        line-height: 1.1;
+        text-decoration: none;
+        box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.16);
+        transition: transform 160ms ease, background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+      }
+
+      .resource-buttons a:hover,
+      .resource-buttons a:focus-visible {
+        background: #3f8422;
+        border-color: #255b19;
+        box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.16), 0 0.45rem 0.9rem rgba(77, 146, 41, 0.24);
+        transform: translateY(-2px);
       }
 
       .attraction-link {
@@ -389,6 +746,40 @@
         font-weight: 900;
         text-decoration: none;
         box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.15);
+        transition: transform 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+      }
+
+      .attraction-link:hover,
+      .attraction-link:focus-visible {
+        background: #1475aa;
+        box-shadow: inset 0 -4px 0 rgba(0, 0, 0, 0.18), 0 0.5rem 1rem rgba(42, 132, 184, 0.28);
+        transform: translateY(-2px);
+      }
+
+      .marker.is-open .attraction-link {
+        grid-column: 1;
+        grid-row: 1;
+        align-self: end;
+        width: 100%;
+        margin: 0;
+      }
+
+      .marker.is-open .link-stack {
+        grid-column: 1;
+        grid-row: 1;
+        align-self: end;
+        display: grid;
+        gap: 0.55rem;
+      }
+
+      .marker.is-open .link-stack .attraction-link {
+        grid-column: auto;
+        grid-row: auto;
+      }
+
+      .marker.is-open .link-stack .source-links,
+      .marker.is-open .link-stack .resource-buttons {
+        margin-top: 0;
       }
 
       .marker.edge-left .attraction-popup {
@@ -453,15 +844,8 @@
       }
 
       @media (max-width: 900px) {
-        .map-wrap {
-          aspect-ratio: 3 / 4;
-          min-height: 760px;
-        }
-
-        .krakow-outline {
-          left: -18%;
-          width: 136%;
-          height: auto;
+        .marker {
+          --marker-size: clamp(48px, 11.5%, 90px);
         }
 
         .attraction-popup {
@@ -470,9 +854,22 @@
         }
 
         .marker.is-open .attraction-popup {
+          inset: 0.5rem;
+          width: auto;
+          height: calc(100vh - 1rem);
           grid-template-columns: 1fr;
-          grid-template-rows: auto auto auto auto;
+          grid-template-rows: none;
+          grid-auto-rows: max-content;
+          align-content: start;
+          gap: 0.75rem;
           overflow: auto;
+          padding: 0.85rem;
+          transform: none;
+        }
+
+        .marker.edge-left.is-open .attraction-popup,
+        .marker.edge-right.is-open .attraction-popup {
+          transform: none;
         }
 
         .place-visual {
@@ -480,23 +877,134 @@
         }
 
         .marker.is-open .place-visual {
-          min-height: 13rem;
+          grid-column: auto;
+          grid-row: auto;
+          width: min(100%, 28rem);
+          height: clamp(7.5rem, 20vh, 11rem);
+          justify-self: center;
+          object-fit: contain;
+        }
+
+        .marker.is-open .info-card {
+          grid-column: auto;
+          grid-row: auto;
+          min-height: auto;
+          overflow: visible;
+          order: 2;
+          padding: 0.9rem;
+        }
+
+        .marker.is-open .place-card {
+          grid-column: auto;
+          grid-row: auto;
+          order: 5;
+        }
+
+        .marker.is-open .gallery {
+          grid-column: auto;
+          grid-row: auto;
+          order: 3;
+          align-self: stretch;
+          height: auto;
+          min-height: clamp(8rem, 24vh, 12rem);
+          margin-top: 0;
+          padding-top: 0;
         }
 
         .gallery-grid {
           grid-template-columns: 1fr;
         }
 
+        .marker.is-open .gallery-grid img {
+          aspect-ratio: 16 / 9;
+          max-height: 11rem;
+        }
+
+        .marker.is-open .gallery-grid img:first-child {
+          min-height: clamp(8rem, 24vh, 12rem);
+        }
+
+        .marker.is-open .attraction-link {
+          grid-column: auto;
+          grid-row: auto;
+          width: 100%;
+          margin: 0;
+        }
+
+        .marker.is-open .link-stack {
+          grid-column: auto;
+          grid-row: auto;
+          order: 4;
+        }
+
+        .marker.is-open .link-stack .attraction-link {
+          order: 0;
+        }
+
         .info-card {
           width: 100%;
+        }
+
+        .carousel-panel {
+          width: min(100%, 92vw);
+          padding: 0.75rem;
+        }
+
+        .carousel-image-wrap {
+          min-height: 58vh;
+        }
+
+        .carousel-image {
+          max-height: 58vh;
+        }
+
+        .carousel-arrow {
+          width: 2.7rem;
+          height: 2.7rem;
+          font-size: 1.8rem;
         }
       }
 
       @media (max-width: 540px) {
         .map-wrap {
-          min-height: 900px;
           border-width: 3px;
           border-radius: 0.9rem;
+        }
+
+        .marker.is-open .attraction-popup {
+          inset: 0.35rem;
+          padding: 0.7rem;
+          border-radius: 0.95rem;
+          gap: 0.6rem;
+        }
+
+        .marker.is-open .modal-close {
+          top: 0.65rem;
+          right: 0.65rem;
+          width: 2.55rem;
+          height: 2.55rem;
+          font-size: 1.75rem;
+        }
+
+        .marker.is-open .place-visual {
+          height: clamp(7rem, 18vh, 9.5rem);
+        }
+
+        .marker.is-open .gallery {
+          min-height: clamp(7rem, 22vh, 10rem);
+        }
+
+        .marker.is-open .gallery-grid img:first-child {
+          min-height: clamp(7rem, 22vh, 10rem);
+        }
+
+        .marker.is-open .gallery-grid::after {
+          left: 0.55rem;
+          right: 0.55rem;
+          bottom: 0.55rem;
+          min-height: 2.15rem;
+          padding: 0.45rem 0.65rem;
+          font-size: 0.8rem;
         }
 
         .place-card {
@@ -507,6 +1015,15 @@
         .info-card {
           border-width: 3px;
           font-size: 0.92rem;
+        }
+
+        .marker.is-open .info-card h3 {
+          padding-right: 2.7rem;
+        }
+
+        .detail-section p,
+        .detail-section ul {
+          font-size: 0.86rem;
         }
       }
     </style>
@@ -533,44 +1050,92 @@
       </header>
 
       <section class="map-wrap shadow-doodle" aria-label="Interaktywna mapa Krakowa z atrakcjami środowiskowymi">
+        <div class="map-stage">
         <img class="krakow-outline" src="mapa.svg" alt="Konturowa mapa Krakowa">
 
-        <div class="marker" style="left: 18%;top: 37%;" role="button" tabindex="0" aria-expanded="false">
+        <div class="marker marker-zoo" role="button" tabindex="0" aria-expanded="false">
           <img class="marker-thumb" src="zoo.png" alt="Zoo Kraków">
           <div class="attraction-popup" role="tooltip">
             <button class="modal-close" type="button" aria-label="Zamknij okno">&times;</button>
             <img class="place-visual" src="zoo.png" alt="" aria-hidden="true">
             <div class="info-card">
-              <h3>Zoo Kraków i Las Wolski</h3>
+              <h3>Las Wolski + Ogród Zoologiczny w Krakowie</h3>
               <p>
-                Lekcja o bioróżnorodności, ochronie gatunków i odpowiedzialnym zwiedzaniu. Dzieci porównują potrzeby zwierząt z różnych środowisk.
+                Połączenie zajęć terenowych w Lesie Wolskim z edukacją przyrodniczą w ZOO pozwala obserwować zwierzęta, rośliny i zależności między organizmami a środowiskiem.
               </p>
-              <p class="long-description expanded-only">
-                W rozszerzonej wersji wycieczki uczniowie mogą pracować z kartą obserwacji: rozpoznawać grupy zwierząt, notować przystosowania do życia w różnych ekosystemach i zastanawiać się, dlaczego ochrona siedlisk jest równie ważna jak opieka nad samymi gatunkami.
-              </p>
+              <div class="detail-sections expanded-only">
+                <div class="detail-section">
+                  <h4>Co się znajduje / co oferuje</h4>
+                  <p>
+                    Las Wolski oferuje możliwość udziału w zajęciach terenowych z leśnikiem, które obejmują edukację przyrodniczą, leśną oraz elementy historii i kultury regionu. Uczniowie poznają florę, faunę oraz zasady ochrony środowiska.
+                  </p>
+                  <p>
+                    Ogród Zoologiczny w Krakowie oferuje zajęcia edukacyjne dla grup szkolnych prowadzone na terenie ZOO. Obejmują one m.in. tematykę ochrony zagrożonych gatunków, przystosowań zwierząt do środowiska, życia zwierząt oraz bioróżnorodności.
+                  </p>
+                  <p>
+                    Bliskość obu miejsc pozwala połączyć obserwację zwierząt w ZOO z poznawaniem naturalnego środowiska leśnego.
+                  </p>
+                </div>
+                <div class="detail-section">
+                  <h4>Cel dydaktyczny</h4>
+                  <ul>
+                    <li>poznanie różnorodności zwierząt i roślin</li>
+                    <li>rozróżnianie podstawowych grup zwierząt: ssaki, gady, ptaki</li>
+                    <li>zrozumienie zależności między organizmami a środowiskiem</li>
+                    <li>rozwijanie umiejętności obserwacji przyrody</li>
+                    <li>kształtowanie postawy dbania o środowisko</li>
+                  </ul>
+                </div>
+                <div class="detail-section">
+                  <h4>Proponowane aktywności</h4>
+                  <ul>
+                    <li>udział w zajęciach edukacyjnych w ZOO</li>
+                    <li>spacer i obserwacje z leśnikiem w Lesie Wolskim</li>
+                    <li>obserwacja zwierząt i ich zachowań</li>
+                    <li>porównanie życia zwierząt w ZOO i w naturze</li>
+                    <li>rozmowa o ochronie przyrody</li>
+                  </ul>
+                </div>
+                <div class="detail-section">
+                  <h4>Dodatkowe informacje</h4>
+                  <p>
+                    Nauczyciel może wziąć książkę o drzewach jako pomoc do wglądu podczas zajęć. Uczeń musi mieć przy sobie ołówki, ponieważ w warunkach terenowych wykonuje szkic wybranego drzewa na karcie pracy. Szkic można pokolorować w domu lub na kolejnych zajęciach.
+                  </p>
+                </div>
+              </div>
               <span class="chips">
                 <span class="chip">2-3 godz.</span>
-                <span class="chip">klasy 1-4</span>
-                <span class="chip">spacer terenowy</span>
+                <span class="chip">szkoła podstawowa</span>
+                <span class="chip">ZOO i las</span>
               </span>
-              <a class="attraction-link expanded-only" href="https://zoo-krakow.pl/" target="_blank" rel="noreferrer">Strona atrakcji</a>
             </div>
             <div class="place-card">
-              <strong>Zoo Kraków</strong>
-              <small>Poznaj zwierzęta i ich siedliska.</small>
+              <strong>Las Wolski + ZOO Kraków</strong>
+              <small>Poznaj zwierzęta, drzewa i leśne zależności.</small>
             </div>
             <div class="gallery expanded-only">
               <strong>Galeria</strong>
               <div class="gallery-grid">
-                <img src="zoo.png" alt="">
-                <img src="placeholder.png" alt="">
-                <img src="witkowice.png" alt="">
+                <img src="gallery/zoo-1.webp" alt="Las Wolski przy krakowskim ZOO">
+                <img src="gallery/zoo-2.webp" alt="Kopiec w okolicy Lasu Wolskiego">
+                <img src="gallery/zoo-3.jpg" alt="Żyrafy w krakowskim ZOO">
+              </div>
+            </div>
+            <div class="link-stack expanded-only">
+              <a class="attraction-link" href="https://zoo-krakow.pl/edukacja/zajecia-dla-szkol-podstawowych/" target="_blank" rel="noreferrer">Strona atrakcji</a>
+              <div class="resource-buttons">
+                <a href="https://docs.google.com/document/d" target="_blank" rel="noreferrer">Karty pracy</a>
+                <a href="https://docs.google.com/document/d" target="_blank" rel="noreferrer">Quiz i ciekawostki</a>
+              </div>
+              <div class="source-links">
+                <a href="https://zoo-krakow.pl/edukacja/zajecia-dla-szkol-podstawowych/" target="_blank" rel="noreferrer">Zajęcia dla szkół</a>
+                <a href="https://www.empik.com/polska-drzewa-encyklopedia-ilustrowana-opracowanie-zbiorowe,prod56451984,ksiazka-p#DetailedData" target="_blank" rel="noreferrer">Książka o drzewach</a>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="marker" style="left: 50%;top: 40%;" role="button" tabindex="0" aria-expanded="false">
+        <div class="marker marker-lem" role="button" tabindex="0" aria-expanded="false">
           <img class="marker-thumb" src="lem.png" alt="Ogród Doświadczeń im. S. Lema">
           <div class="attraction-popup" role="tooltip">
             <button class="modal-close" type="button" aria-label="Zamknij okno">&times;</button>
@@ -578,17 +1143,42 @@
             <div class="info-card">
               <h3>Ogród Doświadczeń im. Stanisława Lema</h3>
               <p>
-                Stacje badawcze pokazują energię, światło, wodę i zjawiska pogodowe. Świetny punkt na rozmowę o tym, jak działa natura.
+                Plenerowe centrum nauki, w którym dzieci samodzielnie eksperymentują przy ponad 100 modelach edukacyjnych z optyki, akustyki, hydrostatyki i mechaniki.
               </p>
-              <p class="long-description expanded-only">
-                Dłuższy wariant zajęć może obejmować pracę w grupach przy wybranych stanowiskach: uczniowie formułują hipotezę, sprawdzają doświadczenie i zapisują, jak obserwowane zjawisko łączy się z pogodą, energią lub wodą w przyrodzie.
-              </p>
+              <div class="detail-sections expanded-only">
+                <div class="detail-section">
+                  <h4>Co oferuje</h4>
+                  <p>
+                    Ogród umożliwia samodzielne eksperymentowanie przy ponad 100 modelach edukacyjnych rozmieszczonych w strefach tematycznych, m.in. optyki, akustyki, hydrostatyki i mechaniki. Na terenie obiektu obecni są instruktorzy wspierający dzieci podczas wykonywania doświadczeń.
+                  </p>
+                </div>
+                <div class="detail-section">
+                  <h4>Warsztaty</h4>
+                  <p>
+                    Dostępna jest oferta warsztatów edukacyjnych dla grup zorganizowanych, prowadzonych przez instruktorów. Dla przedszkoli oraz klas 1-3 proponowane są zajęcia "Dziecinnie proste eksperymenty", podczas których dzieci wykonują doświadczenia z użyciem codziennych przedmiotów, takich jak balony, woda i papier. Zajęcia obejmują m.in. eksperymenty z ciśnieniem, gęstością oraz właściwościami wody.
+                  </p>
+                </div>
+                <div class="detail-section">
+                  <h4>Cel dydaktyczny</h4>
+                  <p>
+                    Rozwijanie ciekawości poznawczej oraz umiejętności obserwacji i wyciągania prostych wniosków poprzez bezpośrednie doświadczenie.
+                  </p>
+                </div>
+                <div class="detail-section">
+                  <h4>Proponowane aktywności</h4>
+                  <ul>
+                    <li>wykonywanie prostych doświadczeń</li>
+                    <li>obserwacja działania urządzeń</li>
+                    <li>rozmowa kierowana "co się stało i dlaczego?"</li>
+                    <li>praca w parach przy stanowiskach</li>
+                  </ul>
+                </div>
+              </div>
               <span class="chips">
                 <span class="chip">1,5-2 godz.</span>
-                <span class="chip">klasy 3-6</span>
+                <span class="chip">przedszkole i klasy 1-3</span>
                 <span class="chip">eksperymenty</span>
               </span>
-              <a class="attraction-link expanded-only" href="https://www.ogroddoswiadczen.pl/" target="_blank" rel="noreferrer">Strona atrakcji</a>
             </div>
             <div class="place-card">
               <strong>Ogród Doświadczeń im. S. Lema</strong>
@@ -597,156 +1187,242 @@
             <div class="gallery expanded-only">
               <strong>Galeria</strong>
               <div class="gallery-grid">
-                <img src="lem.png" alt="">
-                <img src="placeholder.png" alt="">
-                <img src="bagry.png" alt="">
+                <img src="gallery/lem-1.jpg" alt="Ogród Doświadczeń w Krakowie">
+                <img src="gallery/lem-2.jpg" alt="Instalacje edukacyjne w Ogrodzie Doświadczeń">
+                <img src="gallery/lem-3.jpg" alt="Stanowiska eksperymentalne w Ogrodzie Doświadczeń">
+              </div>
+            </div>
+            <div class="link-stack expanded-only">
+              <a class="attraction-link" href="https://www.mit.krakow.pl/informacje-praktyczne/" target="_blank" rel="noreferrer">Strona atrakcji</a>
+              <div class="source-links">
+                <a href="https://www.mit.krakow.pl/informacje-praktyczne/" target="_blank" rel="noreferrer">Informacje</a>
+                <a href="https://www.mit.krakow.pl/instalacje-interaktywne/" target="_blank" rel="noreferrer">Instalacje interaktywne</a>
+                <a href="https://www.mit.krakow.pl/zajecie/warsztaty-w-ogrodzie-doswiadczen/" target="_blank" rel="noreferrer">Warsztaty</a>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="marker" style="left: 22%;top: 55%;" role="button" tabindex="0" aria-expanded="false">
+        <div class="marker marker-symbioza" role="button" tabindex="0" aria-expanded="false">
           <img class="marker-thumb" src="symbioza.png" alt="Centrum Edukacji Ekologicznej Symbioza">
           <div class="attraction-popup" role="tooltip">
             <button class="modal-close" type="button" aria-label="Zamknij okno">&times;</button>
             <img class="place-visual" src="symbioza.png" alt="" aria-hidden="true">
             <div class="info-card">
-              <h3>Centrum Edukacji Ekologicznej Symbioza</h3>
+              <h3>Symbioza - Centrum Edukacji Ekologicznej</h3>
               <p>
-                Warsztaty o lesie, odpadach, wodzie i wyborach, które zmniejszają ślad środowiskowy. Dzieci pracują w małych zespołach.
+                Centrum edukacji ekologicznej, w którym dzieci poznają las przez zabawę, obserwację i bezpośrednie doświadczanie przyrody.
               </p>
-              <p class="long-description expanded-only">
-                Wersja rozszerzona może stać się mini-projektem klasowym: dzieci analizują codzienne decyzje, tworzą listę działań dla szkoły i porównują, które zmiany najłatwiej wprowadzić od razu.
-              </p>
+              <div class="detail-sections expanded-only">
+                <div class="detail-section">
+                  <h4>Co oferuje</h4>
+                  <p>
+                    Symbioza to centrum edukacji ekologicznej, w którym dzieci poznają las poprzez zabawę, obserwację i bezpośrednie doświadczanie przyrody. Uczniowie mogą odkrywać życie lasu z różnych perspektyw, poznając jego mieszkańców, rośliny oraz zależności występujące w ekosystemie leśnym.
+                  </p>
+                  <p>
+                    Podczas wizyty dzieci mogą zwiedzać ekspozycję dzienną "Czas na las", w której przewodnikami po świecie przyrody są leśni bohaterowie: Borsuk, Rzekotka i Puszczyk. Centrum oferuje również warsztaty ekologiczno-przyrodnicze oraz zajęcia terenowe w Lesie Wolskim, które rozwijają ciekawość, uważność i szacunek wobec natury.
+                  </p>
+                </div>
+                <div class="detail-section">
+                  <h4>Cel dydaktyczny</h4>
+                  <ul>
+                    <li>poznanie lasu jako środowiska życia roślin i zwierząt</li>
+                    <li>obserwacja przyrody wszystkimi zmysłami</li>
+                    <li>poznanie wybranych mieszkańców lasu i ich zwyczajów</li>
+                    <li>rozwijanie zainteresowań przyrodniczych dzieci</li>
+                    <li>kształtowanie szacunku wobec przyrody i postawy ekologicznej</li>
+                    <li>zrozumienie zależności między roślinami, zwierzętami i człowiekiem</li>
+                    <li>nauka bezpiecznego i odpowiedzialnego zachowania w lesie</li>
+                    <li>rozwijanie aktywności ruchowej i integracji grupy</li>
+                  </ul>
+                </div>
+                <div class="detail-section">
+                  <h4>Aktywności</h4>
+                  <ol>
+                    <li><strong>Zwiedzanie ekspozycji "Czas na las":</strong> dzieci poznają życie lasu poprzez opowieści Borsuka, Rzekotki i Puszczyka, odkrywając, co dzieje się na dnie lasu, wśród liści oraz wysoko w koronach drzew.</li>
+                    <li><strong>Warsztaty "Mały tropiciel":</strong> uczniowie poznają tropy i zwyczaje leśnych zwierząt, takich jak zając, dzik i wiewiórka, uczą się obserwować ślady oraz wykonują kolorowe odbitki tropów.</li>
+                    <li><strong>Spacer przyrodniczy w lesie:</strong> dzieci obserwują przyrodę wzrokiem, słuchem, węchem i dotykiem, poznając rośliny, młode drzewa, martwe drewno oraz drobnych mieszkańców lasu.</li>
+                  </ol>
+                </div>
+              </div>
               <span class="chips">
                 <span class="chip">1-2 godz.</span>
-                <span class="chip">klasy 1-8</span>
-                <span class="chip">warsztaty</span>
+                <span class="chip">klasy 1-3</span>
+                <span class="chip">las i tropy</span>
               </span>
-              <a class="attraction-link expanded-only" href="https://symbioza-krakow.pl/" target="_blank" rel="noreferrer">Strona atrakcji</a>
             </div>
             <div class="place-card">
-              <strong>Centrum Edukacji Ekologicznej Symbioza</strong>
-              <small>Zrównoważony rozwój na co dzień.</small>
+              <strong>Symbioza - Centrum Edukacji Ekologicznej</strong>
+              <small>Las, tropy i przyroda wszystkimi zmysłami.</small>
             </div>
             <div class="gallery expanded-only">
               <strong>Galeria</strong>
               <div class="gallery-grid">
-                <img src="symbioza.png" alt="">
-                <img src="zoo.png" alt="">
-                <img src="placeholder.png" alt="">
+                <img src="gallery/symbioza-1.jpg" alt="Centrum Edukacji Ekologicznej Symbioza">
+                <img src="gallery/symbioza-2.jpg" alt="Ekspozycja i zajęcia w Symbiozie">
+                <img src="gallery/symbioza-3.jpg" alt="Wnętrze Centrum Edukacji Ekologicznej Symbioza">
+              </div>
+            </div>
+            <div class="link-stack expanded-only">
+              <a class="attraction-link" href="https://symbioza-krakow.pl/symbioza/" target="_blank" rel="noreferrer">Strona atrakcji</a>
+              <div class="source-links">
+                <a href="https://symbioza-krakow.pl/symbioza/" target="_blank" rel="noreferrer">Symbioza</a>
+                <a href="https://symbioza-krakow.pl/wp-content/uploads/2026/03/2026-Oferta-Wiosenna-Klasy-I-III.pdf" target="_blank" rel="noreferrer">Oferta klas I-III</a>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="marker" style="left: 39%;top: 20%;" role="button" tabindex="0" aria-expanded="false">
+        <div class="marker marker-witkowice" role="button" tabindex="0" aria-expanded="false">
           <img class="marker-thumb" src="witkowice.png" alt="Las Witkowicki">
           <div class="attraction-popup" role="tooltip">
             <button class="modal-close" type="button" aria-label="Zamknij okno">&times;</button>
             <img class="place-visual" src="witkowice.png" alt="" aria-hidden="true">
             <div class="info-card">
-              <h3>Las Witkowicki</h3>
+              <h3>Las Witkowice</h3>
               <p>
-                Krótka wyprawa z kartami obserwacji: liście, tropy, warstwy lasu i zasady cichego zachowania na ścieżce.
+                Leśne miejsce do wypoczynku i edukacji przyrodniczej ze ścieżką edukacyjną, hotelami dla owadów, szlakiem rowerowym oraz ekologicznym placem zabaw.
               </p>
-              <p class="long-description expanded-only">
-                Podczas dłuższego spaceru klasa może porównać warstwy lasu, odnaleźć ślady obecności zwierząt i przygotować prosty zielnik obserwacyjny bez zrywania roślin.
-              </p>
+              <div class="detail-sections expanded-only">
+                <div class="detail-section">
+                  <h4>Co oferuje</h4>
+                  <p>
+                    Las Witkowice to atrakcyjne miejsce do wypoczynku i edukacji przyrodniczej, szczególnie w okresie wiosennym i letnim. Znajduje się tu ścieżka edukacyjna, która pozwala dzieciom poznawać gatunki roślin i zwierząt leśnych poprzez tablice informacyjne oraz elementy interaktywne, np. "dziurki od klucza", przez które można obserwować przyrodę.
+                  </p>
+                  <p>
+                    Na trasie ścieżki znajdują się hotele dla owadów, które stanowią ciekawą atrakcję edukacyjną. Przez teren parku przebiega również szlak rowerowy.
+                  </p>
+                  <p>
+                    Dużą atrakcją dla dzieci jest ekologiczny plac zabaw wykonany z drewna i sznura, zawierający m.in. małpi gaj, huśtawki, drewniane elementy oraz zjeżdżalnię.
+                  </p>
+                </div>
+                <div class="detail-section">
+                  <h4>Cel dydaktyczny</h4>
+                  <ul>
+                    <li>poznanie środowiska leśnego i jego elementów: flory i fauny</li>
+                    <li>rozwijanie umiejętności obserwacji przyrody w terenie</li>
+                    <li>rozumienie znaczenia ochrony przyrody</li>
+                    <li>poznanie roli owadów w ekosystemie dzięki hotelom dla owadów</li>
+                    <li>rozwijanie sprawności ruchowej i koordynacji poprzez aktywność na świeżym powietrzu</li>
+                    <li>kształtowanie postawy odpowiedzialnego korzystania z przestrzeni przyrodniczej</li>
+                  </ul>
+                </div>
+                <div class="detail-section">
+                  <h4>Aktywności</h4>
+                  <ul>
+                    <li>spacer ścieżką edukacyjną i odczytywanie informacji z tablic</li>
+                    <li>obserwacja przyrody przez "dziurki od klucza"</li>
+                    <li>poszukiwanie i rozpoznawanie gatunków flory i fauny w terenie</li>
+                    <li>obserwacja hoteli dla owadów i rozmowa o ich roli</li>
+                    <li>zabawy ruchowe i integracyjne na ekologicznym placu zabaw</li>
+                    <li>odpoczynek i piknik na polanie</li>
+                  </ul>
+                </div>
+                <div class="detail-section">
+                  <h4>Propozycja leśnych zabaw</h4>
+                </div>
+              </div>
               <span class="chips">
                 <span class="chip">1,5 godz.</span>
-                <span class="chip">klasy 1-5</span>
-                <span class="chip">obserwacje</span>
+                <span class="chip">wiosna i lato</span>
+                <span class="chip">ścieżka edukacyjna</span>
               </span>
-              <a class="attraction-link expanded-only" href="https://www.google.com/search?q=Las+Witkowicki+Krak%C3%B3w" target="_blank" rel="noreferrer">Strona atrakcji</a>
             </div>
             <div class="place-card">
-              <strong>Las Witkowicki</strong>
-              <small>Leśna przygoda i nauka w terenie.</small>
+              <strong>Las Witkowice</strong>
+              <small>Ścieżka edukacyjna, owady i leśne zabawy.</small>
             </div>
             <div class="gallery expanded-only">
               <strong>Galeria</strong>
               <div class="gallery-grid">
-                <img src="witkowice.png" alt="">
-                <img src="placeholder.png" alt="">
-                <img src="laki.png" alt="">
+                <img src="gallery/witkowice-1.jpg" alt="Las Witkowicki">
+                <img src="gallery/witkowice-2.jpg" alt="Mostek w Lesie Witkowickim">
+                <img src="gallery/witkowice-3.jpg" alt="Ścieżka w Lesie Witkowickim">
+              </div>
+            </div>
+            <div class="link-stack expanded-only">
+              <a class="attraction-link" href="https://www.krakow.z-dzieckiem.pl/2020/06/21/las-witkowicki-lesna-kryjowka-dla-dzieci/" target="_blank" rel="noreferrer">Strona atrakcji</a>
+              <div class="resource-buttons">
+                <a href="https://wielkizachwyt.pl/lesne-zabawy-wymyslone-przez-moje-dziec/" target="_blank" rel="noreferrer">Leśne zabawy</a>
+              </div>
+              <div class="source-links">
+                <a href="https://www.krakow.z-dzieckiem.pl/2020/06/21/las-witkowicki-lesna-kryjowka-dla-dzieci/" target="_blank" rel="noreferrer">Źródło</a>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="marker" style="left: 45%;top: 61%;" role="button" tabindex="0" aria-expanded="false">
-          <img class="marker-thumb" src="bagry.png" alt="Zbiornik Bagry">
-          <div class="attraction-popup" role="tooltip">
-            <button class="modal-close" type="button" aria-label="Zamknij okno">&times;</button>
-            <img class="place-visual" src="bagry.png" alt="" aria-hidden="true">
-            <div class="info-card">
-              <h3>Zbiornik Bagry</h3>
-              <p>
-                Przystanek o mokradłach, ptakach wodnych i znaczeniu czystej wody w mieście. Dobrze działa z lornetkami i mini-notatnikiem.
-              </p>
-              <p class="long-description expanded-only">
-                Rozszerzony opis wycieczki obejmuje obserwację ptaków, rozmowę o czystości wody oraz krótkie zadanie: narysować łańcuch zależności między roślinami, owadami, ptakami i człowiekiem.
-              </p>
-              <span class="chips">
-                <span class="chip">1 godz.</span>
-                <span class="chip">klasy 2-6</span>
-                <span class="chip">woda i ptaki</span>
-              </span>
-              <a class="attraction-link expanded-only" href="https://www.google.com/search?q=Zbiornik+Bagry+Krak%C3%B3w" target="_blank" rel="noreferrer">Strona atrakcji</a>
-            </div>
-            <div class="place-card">
-              <strong>Zbiornik Bagry</strong>
-              <small>Obserwuj ptaki i poznaj świat wodny.</small>
-            </div>
-            <div class="gallery expanded-only">
-              <strong>Galeria</strong>
-              <div class="gallery-grid">
-                <img src="bagry.png" alt="">
-                <img src="placeholder.png" alt="">
-                <img src="symbioza.png" alt="">
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="marker" style="left: 85%;top: 44%;" role="button" tabindex="0" aria-expanded="false">
+        <div class="marker marker-jeziorkowo" role="button" tabindex="0" aria-expanded="false">
           
-          <img class="marker-thumb" src="jeziorkowo.png" alt="Ośrodek Edukacji Ekologicznej w Swoszowicach">
+          <img class="marker-thumb" src="jeziorkowo.png" alt="Jeziorkowo - Zagroda Edukacyjna">
           <div class="attraction-popup" role="tooltip">
             <button class="modal-close" type="button" aria-label="Zamknij okno">&times;</button>
             <img class="place-visual" src="jeziorkowo.png" alt="" aria-hidden="true">
             <div class="info-card">
-              <h3>Ośrodek Edukacji Ekologicznej w Swoszowicach</h3>
+              <h3>Jeziorkowo - Zagroda Edukacyjna</h3>
               <p>
-                Zajęcia o jakości powietrza, zieleni miejskiej i prostych sposobach dbania o zdrowe otoczenie szkoły oraz domu.
+                Zagroda edukacyjna, w której dzieci obserwują zwierzęta gospodarskie, karmią je pod opieką prowadzących i poznają codzienne życie na wsi.
               </p>
-              <p class="long-description expanded-only">
-                Dłuższy wariant można połączyć z pomiarem jakości powietrza, rozmową o transporcie oraz projektowaniem szkolnej listy działań ograniczających smog i hałas.
-              </p>
+              <div class="detail-sections expanded-only">
+                <div class="detail-section">
+                  <h4>Co oferuje</h4>
+                  <p>
+                    Jeziorkowo to zagroda edukacyjna, w której dzieci mają bezpośredni kontakt ze zwierzętami gospodarskimi. Zwierzęta poruszają się swobodnie po wyznaczonym terenie, co daje możliwość obserwacji ich naturalnych zachowań.
+                  </p>
+                  <p>
+                    Dzieci otrzymują specjalne pojemniczki z karmą i mogą samodzielnie karmić m.in. świnie, kozy czy króliki. Jedną z największych atrakcji jest możliwość wyprowadzania alpak na spacer.
+                  </p>
+                  <p>
+                    Na terenie zagrody znajduje się również plac zabaw, a podczas wizyty można zobaczyć pokaz tradycyjnego przędzenia na krośnie. Dodatkowo dostępny jest sklep z wyrobami oraz możliwość organizacji ogniska.
+                  </p>
+                </div>
+                <div class="detail-section">
+                  <h4>Cel dydaktyczny</h4>
+                  <ul>
+                    <li>poznanie zwierząt gospodarskich poprzez bezpośredni kontakt i obserwację</li>
+                    <li>nauka odpowiedniego zachowania wobec zwierząt: karmienie, ostrożność i spokój</li>
+                    <li>rozwijanie wrażliwości i empatii wobec zwierząt</li>
+                    <li>poznanie tradycyjnych zajęć, np. przędzenia, oraz wyrobów z wełny</li>
+                    <li>rozwijanie aktywności ruchowej i integracji grupy</li>
+                  </ul>
+                </div>
+                <div class="detail-section">
+                  <h4>Aktywności</h4>
+                  <ol>
+                    <li><strong>Karmienie zwierząt:</strong> dzieci otrzymują pojemniczki z karmą i samodzielnie karmią zwierzęta, np. kozy, świnie i króliki, ucząc się zasad bezpiecznego kontaktu.</li>
+                    <li><strong>Spacer z alpaką:</strong> uczniowie mogą wyprowadzić alpakę pod opieką prowadzącego, poznając jej zachowanie i sposób opieki.</li>
+                    <li><strong>Zagroda w praktyce:</strong> obserwacja życia w zagrodzie oraz dodatkowych atrakcji, takich jak plac zabaw, pokaz przędzenia, sklep i ognisko.</li>
+                  </ol>
+                </div>
+              </div>
               <span class="chips">
                 <span class="chip">1,5-2 godz.</span>
-                <span class="chip">klasy 4-8</span>
-                <span class="chip">czyste powietrze</span>
+                <span class="chip">zwierzęta gospodarskie</span>
+                <span class="chip">alpaki</span>
               </span>
-              <a class="attraction-link expanded-only" href="https://www.google.com/search?q=O%C5%9Brodek+Edukacji+Ekologicznej+Swoszowice" target="_blank" rel="noreferrer">Strona atrakcji</a>
             </div>
             <div class="place-card">
-              <strong>Ośrodek Edukacji Ekologicznej w Swoszowicach</strong>
-              <small>Przyroda, warsztaty i czyste powietrze.</small>
+              <strong>Jeziorkowo - Zagroda Edukacyjna</strong>
+              <small>Zwierzęta, alpaki i tradycyjne zajęcia.</small>
             </div>
             <div class="gallery expanded-only">
               <strong>Galeria</strong>
               <div class="gallery-grid">
-                <img src="jeziorkowo.png" alt="">
-                <img src="placeholder.png" alt="">
-                <img src="witkowice.png" alt="">
+                <img src="gallery/jeziorkowo-1.jpg" alt="Karmienie alpaki w Jeziorkowie">
+                <img src="gallery/jeziorkowo-2.jpg" alt="Zwierzęta w zagrodzie edukacyjnej Jeziorkowo">
+                <img src="gallery/jeziorkowo-3.jpg" alt="Atrakcje zagrody edukacyjnej Jeziorkowo">
+              </div>
+            </div>
+            <div class="link-stack expanded-only">
+              <a class="attraction-link" href="https://jeziorkowo.pl/o-nas" target="_blank" rel="noreferrer">Strona atrakcji</a>
+              <div class="source-links">
+                <a href="https://jeziorkowo.pl/o-nas" target="_blank" rel="noreferrer">O nas</a>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="marker" style="left: 70%;top: 40%;" role="button" tabindex="0" aria-expanded="false">
+        <div class="marker marker-laki" role="button" tabindex="0" aria-expanded="false">
           
           <img class="marker-thumb" src="laki.png" alt="Łąki nowochuckie">
           <div class="attraction-popup" role="tooltip">
@@ -755,17 +1431,57 @@
             <div class="info-card">
               <h3>Łąki Nowohuckie</h3>
               <p>
-                Spacer po miejskiej ostoi przyrody, podczas którego dzieci poznają rośliny łąkowe, owady zapylające i znaczenie zielonych enklaw.
+                Rozległy miejski obszar łąkowy, w którym dzieci mogą obserwować roślinność, owady, ptaki i znaczenie bioróżnorodności w środowisku miejskim.
               </p>
-              <p class="long-description expanded-only">
-                W rozszerzonej wersji uczniowie tworzą mapę mikro-siedlisk: zaznaczają trawy, krzewy, miejsca dla owadów i ptaków, a potem rozmawiają o tym, dlaczego nie każda zieleń miejska powinna być równo przystrzyżonym trawnikiem.
-              </p>
+              <div class="detail-sections expanded-only">
+                <div class="detail-section">
+                  <h4>Co oferuje</h4>
+                  <p>
+                    Łąki Nowohuckie to rozległy teren przyrodniczy w Krakowie, będący jednym z największych miejskich obszarów łąkowych. To miejsce o wysokich walorach przyrodniczych, gdzie można obserwować naturalnie występującą roślinność łąkową oraz wiele gatunków ptaków i owadów.
+                  </p>
+                  <p>
+                    Obszar ten pełni ważną funkcję ekologiczną: wspiera bioróżnorodność i stanowi miejsce życia dla wielu organizmów w środowisku miejskim.
+                  </p>
+                </div>
+                <div class="detail-section">
+                  <h4>Cel dydaktyczny</h4>
+                  <ul>
+                    <li>poznanie ekosystemu łąki i jego elementów: roślin, owadów i ptaków</li>
+                    <li>rozwijanie umiejętności obserwacji przyrody w terenie</li>
+                    <li>rozpoznawanie podstawowych gatunków roślin i zwierząt łąkowych</li>
+                    <li>zrozumienie znaczenia bioróżnorodności i ochrony terenów zielonych w mieście</li>
+                    <li>kształtowanie postawy szacunku do przyrody i środowiska naturalnego</li>
+                  </ul>
+                </div>
+                <div class="detail-section">
+                  <h4>Aktywności</h4>
+                  <ul>
+                    <li>spacer po łąkach i obserwacja przyrody</li>
+                    <li>rozpoznawanie roślin łąkowych, np. traw i kwiatów polnych</li>
+                    <li>obserwacja owadów, np. motyli i pszczół</li>
+                    <li>obserwacja ptaków w naturalnym środowisku</li>
+                    <li>rozmowa o znaczeniu łąk w mieście</li>
+                    <li>zabawy ruchowe na świeżym powietrzu</li>
+                    <li>piknik w terenie</li>
+                  </ul>
+                </div>
+                <div class="detail-section">
+                  <h4>Proponowane aktywności</h4>
+                  <ol>
+                    <li><strong>Tańczące motyle:</strong> dzieci poruszają się swobodnie po łące jak motyle, omijają kwiaty, trawy i inne osoby, a na hasło "motyle odpoczywają" zatrzymują się przy wybranej roślinie i obserwują ją z bliska.</li>
+                    <li><strong>Pszczoły zbierają nektar:</strong> dzieci udają pszczoły latające od kwiatka do kwiatka, wyszukują różne kwiaty i na hasło "do ula" wracają do wyznaczonego miejsca.</li>
+                    <li><strong>Hop, żabko:</strong> dzieci skaczą jak żabki po wyznaczonym fragmencie łąki, omijają naturalne przeszkody, a na hasło "bocian" zastygają bez ruchu.</li>
+                    <li><strong>Kwiatowy tropiciel:</strong> dzieci szukają kolorów kwiatów wskazanych przez nauczyciela, np. "żółty kwiat", pokazując rośliny bez ich zrywania.</li>
+                    <li><strong>Wyścig odkrywców łąki:</strong> nauczyciel podaje nazwę rośliny, np. mak, chaber, jaskier, gorczyca polna lub koniczyna biała, a dzieci odnajdują ją w terenie i sprawdzają ze zdjęciem, czy wskazały właściwy kwiat.</li>
+                    <li><strong>Układanie pytań do ciekawostek:</strong> grupy otrzymują krótkie informacje o łące, kwiatach, owadach lub zapylaniu, układają do nich pytania, a następnie zadają je sobie nawzajem.</li>
+                  </ol>
+                </div>
+              </div>
               <span class="chips">
                 <span class="chip">1-1,5 godz.</span>
                 <span class="chip">klasy 1-3</span>
-                <span class="chip">łąka i owady</span>
+                <span class="chip">łąka, ptaki i owady</span>
               </span>
-              <a class="attraction-link expanded-only" href="https://www.google.com/search?q=%C5%81%C4%85ki+Nowohuckie+Krak%C3%B3w" target="_blank" rel="noreferrer">Strona atrakcji</a>
             </div>
             <div class="place-card">
               <strong>Łąki Nowohuckie</strong>
@@ -774,12 +1490,19 @@
             <div class="gallery expanded-only">
               <strong>Galeria</strong>
               <div class="gallery-grid">
-                <img src="laki.png" alt="">
-                <img src="bagry.png" alt="">
-                <img src="placeholder.png" alt="">
+                <img src="gallery/laki-1.jpg" alt="Łąki Nowohuckie">
+                <img src="gallery/laki-2.jpg" alt="Ścieżka przez Łąki Nowohuckie">
+                <img src="gallery/laki-3.jpg" alt="Roślinność Łąk Nowohuckich">
+              </div>
+            </div>
+            <div class="link-stack expanded-only">
+              <a class="attraction-link" href="https://www.krakow.z-dzieckiem.pl/2020/05/23/laki-nowohuckie-zielone-miejsce-na-spacer/" target="_blank" rel="noreferrer">Strona atrakcji</a>
+              <div class="source-links">
+                <a href="https://www.krakow.z-dzieckiem.pl/2020/05/23/laki-nowohuckie-zielone-miejsce-na-spacer/" target="_blank" rel="noreferrer">Źródło</a>
               </div>
             </div>
           </div>
+        </div>
         </div>
       </section>
 
@@ -793,7 +1516,7 @@
             </div>
             <div class="rounded-xl border-2 border-sky-300 bg-sky-100/70 p-4">
               <p class="text-sm font-black uppercase text-sky-600">Południe</p>
-              <p class="mt-1 text-sm font-bold leading-snug">Spacer terenowy: Las Witkowicki, Las Wolski lub Bagry.</p>
+              <p class="mt-1 text-sm font-bold leading-snug">Spacer terenowy: Las Witkowicki, Las Wolski lub Łąki Nowohuckie.</p>
             </div>
             <div class="rounded-xl border-2 border-amber-300 bg-amber-50 p-4">
               <p class="text-sm font-black uppercase text-amber-700">Podsumowanie</p>
@@ -819,11 +1542,80 @@
       </footer>
     </main>
 
+    <div class="carousel-viewer" aria-hidden="true">
+      <div class="carousel-panel" role="dialog" aria-modal="true" aria-label="Galeria zdjęć atrakcji">
+        <button class="carousel-close" type="button" aria-label="Zamknij galerię">&times;</button>
+        <button class="carousel-arrow carousel-prev" type="button" aria-label="Poprzednie zdjęcie">&#8249;</button>
+        <div class="carousel-image-wrap">
+          <img class="carousel-image" src="" alt="">
+        </div>
+        <button class="carousel-arrow carousel-next" type="button" aria-label="Następne zdjęcie">&#8250;</button>
+        <p class="carousel-caption"></p>
+      </div>
+    </div>
+
     <script>
       const markers = [...document.querySelectorAll(".marker")];
+      const carousel = document.querySelector(".carousel-viewer");
+      const carouselImage = carousel.querySelector(".carousel-image");
+      const carouselCaption = carousel.querySelector(".carousel-caption");
+      const carouselClose = carousel.querySelector(".carousel-close");
+      const carouselPrev = carousel.querySelector(".carousel-prev");
+      const carouselNext = carousel.querySelector(".carousel-next");
+      let carouselItems = [];
+      let carouselIndex = 0;
 
       function clearExpandedPosition(marker) {
         marker.querySelector(".attraction-popup")?.removeAttribute("style");
+      }
+
+      function renderCarousel() {
+        const current = carouselItems[carouselIndex];
+        if (!current) return;
+
+        carouselImage.src = current.src;
+        carouselImage.alt = current.alt || "Zdjęcie atrakcji";
+        carouselCaption.textContent = `${current.title} - zdjęcie ${carouselIndex + 1} z ${carouselItems.length}`;
+      }
+
+      function openCarousel(marker, clickedImage) {
+        const title = marker.querySelector(".info-card h3")?.textContent?.trim() || "Atrakcja";
+        const images = [...marker.querySelectorAll(".place-visual, .gallery-grid img")];
+        const uniqueImages = [];
+        const seen = new Set();
+
+        images.forEach((image) => {
+          const src = image.getAttribute("src");
+          if (!src || seen.has(src)) return;
+          seen.add(src);
+          uniqueImages.push({
+            src,
+            title,
+            alt: image.getAttribute("alt") || title,
+          });
+        });
+
+        carouselItems = uniqueImages;
+        carouselIndex = Math.max(0, uniqueImages.findIndex((item) => item.src === clickedImage.getAttribute("src")));
+
+        renderCarousel();
+        carousel.classList.add("is-visible");
+        carousel.setAttribute("aria-hidden", "false");
+        carouselClose.focus();
+      }
+
+      function closeCarousel() {
+        carousel.classList.remove("is-visible");
+        carousel.setAttribute("aria-hidden", "true");
+        carouselImage.removeAttribute("src");
+        carouselItems = [];
+        carouselIndex = 0;
+      }
+
+      function moveCarousel(direction) {
+        if (!carouselItems.length) return;
+        carouselIndex = (carouselIndex + direction + carouselItems.length) % carouselItems.length;
+        renderCarousel();
       }
 
       function closeMarkers(except) {
@@ -858,6 +1650,14 @@
           event.stopPropagation();
         });
 
+        marker.querySelectorAll(".place-visual, .gallery-grid img").forEach((image) => {
+          image.addEventListener("click", (event) => {
+            if (!marker.classList.contains("is-open")) return;
+            event.stopPropagation();
+            openCarousel(marker, image);
+          });
+        });
+
         const closeButton = marker.querySelector(".modal-close");
         closeButton?.addEventListener("click", (event) => {
           event.stopPropagation();
@@ -879,6 +1679,33 @@
             clearExpandedPosition(marker);
           }
         });
+      });
+
+      carouselClose.addEventListener("click", closeCarousel);
+      carouselPrev.addEventListener("click", () => moveCarousel(-1));
+      carouselNext.addEventListener("click", () => moveCarousel(1));
+
+      carousel.addEventListener("click", (event) => {
+        event.stopPropagation();
+        if (event.target === carousel) {
+          closeCarousel();
+        }
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (!carousel.classList.contains("is-visible")) return;
+
+        if (event.key === "Escape") {
+          closeCarousel();
+        }
+
+        if (event.key === "ArrowLeft") {
+          moveCarousel(-1);
+        }
+
+        if (event.key === "ArrowRight") {
+          moveCarousel(1);
+        }
       });
 
       document.addEventListener("click", () => closeMarkers());
